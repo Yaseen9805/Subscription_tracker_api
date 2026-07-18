@@ -12,7 +12,7 @@ export const sendreminders=serve(async(context)=>{
 
     if(!subscription|| subscription.status!== 'active')return;
      
-    const renewaldate=dayjs(subscription.renewaldate);
+    const renewaldate=dayjs(subscription.renewalDate);
 
     if(renewaldate.isBefore(dayjs())){
         console.log(`Renewal date has passed for subscription 

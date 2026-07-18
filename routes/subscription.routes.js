@@ -7,6 +7,11 @@ const Subscriptionrouter=Router();
 Subscriptionrouter.get("/",(req,res)=>{
     res.send({title:"Get all subscriptions"});
 });
+Subscriptionrouter.get("/upcoming-renewals",(req,res)=>{
+    res.send({title:"Get upcoming renewals"});
+});
+Subscriptionrouter.get("/user/:id",authorize,getusersubscription);
+Subscriptionrouter.get("/:subscriptionId/workflow", authorize, getWorkflowStatus);
 Subscriptionrouter.get("/:id",(req,res)=>{
     res.send({title:"Get subscription Details"});
 });
@@ -18,14 +23,8 @@ Subscriptionrouter.put("/:id",(req,res)=>{
 Subscriptionrouter.delete("/:id",(req,res)=>{
     res.send({title:"Delete subscription"});
 });
-Subscriptionrouter.get("/user/:id",authorize,getusersubscription);
 
 Subscriptionrouter.put("/:id/cancel",(req,res)=>{
     res.send({title:"Cancel subscription"});
 });
-Subscriptionrouter.get("/upcoming-renewals",(req,res)=>{
-    res.send({title:"Get upcoming renewals"});
-});
-
-Subscriptionrouter.get("/:subscriptionId/workflow", authorize, getWorkflowStatus);
 export default Subscriptionrouter;

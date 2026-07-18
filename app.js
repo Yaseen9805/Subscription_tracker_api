@@ -18,14 +18,15 @@ app.use(arcjetmiddleware)
 app.use('/api/v1/auth',authrouter)
 app.use('/api/v1/subscriptions',Subscriptionrouter)
 app.use('/api/v1/users',userrouter)
-app.use('/api/v1/workflows',workflowrouter) 
+app.use('/api/v1/workflows',workflowrouter)
 
-app.use(errormiddleware);
 app.get("/",(req,res)=>{
     res.send("Welcome to the Subscription Tracker API");
 
 
 })
+
+app.use(errormiddleware);
 
 app.listen(PORT,async ()=>{
     console.log(`Subscription Tracker API is running on http://localhost:${PORT}`);
