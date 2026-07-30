@@ -1,150 +1,52 @@
 # Subscription Tracker API
 
-A Node.js/Express REST API for tracking recurring subscriptions — user auth, subscription CRUD, automatic renewal-date calculation, and scheduled renewal reminders via Upstash Workflow/QStash.
+![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-000000?logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-black?logo=jsonwebtokens&logoColor=white)
+![Upstash](https://img.shields.io/badge/Upstash-00E9A3?logo=upstash&logoColor=white)
+![ESLint](https://img.shields.io/badge/ESLint-4B32C3?logo=eslint&logoColor=white)
+
+## Short description
+
+A REST API for tracking recurring subscriptions, built with Node and Express. It handles user auth, subscription CRUD, works out renewal dates automatically, and schedules renewal reminders through Upstash Workflow/QStash.
+
+## Technologies
+
+Node.js (ESM), Express 4, MongoDB with Mongoose 8, JWT and bcrypt for auth, Arcjet for bot detection and rate limiting, Upstash Workflow (QStash) for scheduling, dayjs for date handling, ESLint
 
 ## Features
 
-- **Authentication** — signup/signin/signout with JWT, hashed passwords (bcrypt), and a transactional signup (MongoDB session) to guarantee atomic user creation.
-- **Subscriptions** — create subscriptions with a `startDate` and `frequency`; `renewalDate` is auto-calculated on save if not provided, and `status` auto-flips to `expired` once the renewal date has passed.
-- **Renewal reminders** — creating a subscription can trigger an Upstash Workflow run that schedules reminders 7/5/2/1 days before renewal (currently logs each reminder — hook in email/SMS delivery as needed).
-- **Security middleware** — [Arcjet](https://arcjet.com) provides bot detection, a shield/WAF layer, and token-bucket rate limiting on every request.
-- **Centralized error handling** — Mongoose `CastError`, duplicate-key, and validation errors are normalized into consistent JSON error responses.
+- Signup, signin, and signout with JWT-based auth and bcrypt-hashed passwords
+- Signup runs inside a MongoDB transaction so a new user is created atomically
+- Subscriptions store a start date and frequency; the renewal date is calculated automatically if it isn't provided
+- A subscription's status flips to expired on its own once the renewal date has passed
+- Creating a subscription kicks off an Upstash Workflow run that schedules reminders at 7, 5, 2, and 1 days before renewal
+- Arcjet middleware adds bot detection, a WAF-style shield, and rate limiting to every request
+- Centralized error handling normalizes Mongoose cast, validation, and duplicate-key errors into consistent JSON responses
 
-## Tech Stack
+## The process
 
-- **Runtime**: Node.js (ESM / `"type": "module"`)
-- **Framework**: Express 4
-- **Database**: MongoDB with Mongoose 8
-- **Auth**: jsonwebtoken, bcryptjs, cookie-parser
-- **Security**: @arcjet/node
-- **Scheduling**: @upstash/workflow (QStash)
-- **Dates**: dayjs
-- **Tooling**: ESLint, nodemon
+The goal was to build something closer to a real backend service than a typical CRUD tutorial, so most of the effort went into the auth flow and the scheduling side rather than just basic routes. Wrapping user creation in a Mongoose transaction was one of the trickier parts, since it means the database has to run as a replica set rather than a standalone instance. Wiring up Upstash Workflow to schedule several reminders ahead of a renewal date, instead of just firing a single reminder, was the other main piece of work, along with adding Arcjet in front of the routes for basic abuse protection.
 
-## Prerequisites
+## What I learned
 
-- Node.js and npm
-- A MongoDB connection string
-  - Signup uses a Mongoose transaction, so the database must be a **replica set** (any MongoDB Atlas cluster satisfies this by default; a plain standalone `mongod` does not).
-- An [Arcjet](https://arcjet.com) API key (used for bot detection / rate limiting middleware)
-- An [Upstash QStash](https://upstash.com/docs/qstash) token + URL (used to schedule renewal reminders)
+- Using Mongoose transactions and sessions to keep multi-step writes atomic
+- Structuring an Express app with separate config, controller, middleware, and route layers
+- Scheduling delayed, multi-step jobs with Upstash Workflow instead of relying on a simple cron job
+- Adding request-level security (bot detection, rate limiting) with Arcjet
+- Centralizing error handling so controllers don't need repetitive try/catch logic for every error type
 
-## Installation
+## How it can be improved
 
-```bash
-npm install
-```
+- Wire up the stubbed subscription and user endpoints (list, update, delete, cancel) that currently just return placeholders
+- Replace the reminder logging with actual email or SMS delivery
+- Add automated tests for the auth flow and subscription lifecycle
+- Add pagination and filtering to the list endpoints
 
-## Configuration
+## How to run the project
 
-Environment variables are loaded from `.env.<NODE_ENV>.local` (see `config/env.js`), defaulting to `.env.development.local` when `NODE_ENV` is unset. Create that file in the project root with:
-
-```bash
-PORT=5500
-SERVER_URL=<your server's public URL, e.g. an ngrok tunnel in dev>
-NODE_ENV=development
-
-DB_URI=<your MongoDB connection string>
-
-JWT_SECRET=<your JWT signing secret>
-JWT_EXPIRES_IN=1d
-
-ARCJET_KEY=<your Arcjet API key>
-ARCJET_ENV=development
-
-QSTASH_URL=https://qstash.upstash.io
-QSTASH_TOKEN=<your Upstash QStash token>
-```
-
-For a production deployment, create `.env.production.local` with the equivalent production values (`NODE_ENV=production` enables the renewal-reminder workflow trigger automatically on subscription creation).
-
-## Usage
-
-```bash
-npm run dev    # start with nodemon (auto-restart on changes)
-npm start      # start normally
-```
-
-The API listens on `http://localhost:<PORT>` and connects to MongoDB on startup.
-
-> Arcjet's bot-detection rule blocks requests without a recognized browser/allowed client signature by default — plain `curl` requests will get a 403 `Bot detected`. Use a browser, Postman, or another allow-listed client (see `config/arcjet.js`) when testing manually.
-
-## API Endpoints
-
-All routes are prefixed with `/api/v1`. Routes marked *(stub)* return a placeholder response and are not yet wired to a controller.
-
-### Auth (`/auth`)
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/signup` | Create a user, returns a JWT |
-| POST | `/signin` | Authenticate, returns a JWT |
-| POST | `/signout` | Sign out |
-
-### Subscriptions (`/subscriptions`)
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| GET | `/` | — | List all subscriptions *(stub)* |
-| GET | `/upcoming-renewals` | — | Upcoming renewals *(stub)* |
-| GET | `/user/:id` | required | Get a given user's subscriptions |
-| GET | `/:subscriptionId/workflow` | required | Get the Upstash workflow status for a subscription's reminders |
-| GET | `/:id` | — | Get subscription details *(stub)* |
-| POST | `/` | required | Create a subscription |
-| PUT | `/:id` | — | Update a subscription *(stub)* |
-| DELETE | `/:id` | — | Delete a subscription *(stub)* |
-| PUT | `/:id/cancel` | — | Cancel a subscription *(stub)* |
-
-### Users (`/users`)
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| GET | `/` | — | List all users |
-| GET | `/:id` | required | Get a user by id |
-| POST | `/` | — | Create a user *(stub)* |
-| PUT | `/:id` | — | Update a user *(stub)* |
-| DELETE | `/:id` | — | Delete a user *(stub)* |
-
-### Workflows (`/workflows`)
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/subscriptions/reminder` | Upstash Workflow entry point that runs the renewal-reminder schedule; triggered internally by QStash, not intended for direct client calls |
-
-Authenticated routes expect `Authorization: Bearer <token>`.
-
-## Project Structure
-
-```
-backend/
-├── app.js                        # Express app entry point
-├── config/
-│   ├── arcjet.js                 # Arcjet rules: shield, bot detection, rate limiting
-│   ├── env.js                    # Loads env vars from .env.<NODE_ENV>.local
-│   └── upstash.js                # Upstash Workflow client
-├── controllers/
-│   ├── auth.controller.js
-│   ├── subscription.controller.js
-│   ├── user.controller.js
-│   └── workflow.controller.js
-├── database/
-│   └── mongodb.js                # Mongoose connection
-├── middlewares/
-│   ├── arcjet.middlewares.js
-│   ├── auth.middlewares.js       # JWT verification
-│   └── error.middleware.js       # Centralized error handler
-├── models/
-│   ├── subscription.model.js
-│   └── user.model.js
-└── routes/
-    ├── auth.routes.js
-    ├── subscription.routes.js
-    ├── users.routes.js
-    └── workflow.routes.js
-```
-
-## Linting
-
-```bash
-npx eslint .
-```
+1. Clone the repo and run `npm install`
+2. Create a `.env.development.local` file with your MongoDB URI, JWT secret, Arcjet key, and Upstash QStash credentials
+3. Run `npm run dev` to start the server with nodemon
+4. The API listens on `http://localhost:<PORT>` under the `/api/v1` prefix
