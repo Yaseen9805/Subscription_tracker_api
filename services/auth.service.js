@@ -9,25 +9,25 @@ export const signupUser = async ({ name, email, password }) => {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
-        const existinguser = await User.findOne({ email });
+        const existingUser = await User.findOne({ email });
 
-        if (existinguser) {
+        if (existingUser) {
             const error = new Error("already exists");
             error.statusCode = 409;
             throw error;
         }
 
         const salt = await bcrypt.genSalt(10);
-        const hashedpassword = await bcrypt.hash(password, salt);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
-        const newuser = await User.create([{ name, email, password: hashedpassword }], { session });
+        const newUser = await User.create([{ name, email, password: hashedPassword }], { session });
 
-        const token = jwt.sign({ userId: newuser[0]._id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+        const token = jwt.sign({ userId: newUser[0]._id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
         await session.commitTransaction();
         session.endSession();
 
-        return { token, user: withoutPassword(newuser[0]) };
+        return { token, user: withoutPassword(newUser[0]) };
     } catch (error) {
         await session.abortTransaction();
         session.endSession();
@@ -44,8 +44,8 @@ export const signinUser = async ({ email, password }) => {
         throw error;
     }
 
-    const ispasswordvalid = await bcrypt.compare(password, user.password);
-    if (!ispasswordvalid) {
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
         const error = new Error("invalid password");
         error.statusCode = 401;
         throw error;

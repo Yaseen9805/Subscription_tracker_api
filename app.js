@@ -15,19 +15,19 @@ import workflowrouter from "./routes/workflow.routes.js";
 import logger from "./config/logger.js";
 import openapiSpec from "./docs/openapi.js";
 
-const app=express();
+const app = express();
 
-app.get("/health",(req,res)=>{
-    const dbStatusByReadyState = ["disconnected","connected","connecting","disconnecting"];
+app.get("/health", (req, res) => {
+    const dbStatusByReadyState = ["disconnected", "connected", "connecting", "disconnecting"];
 
     res.status(200).json({
-        success:true,
-        status:"ok",
-        uptime:process.uptime(),
-        timestamp:new Date().toISOString(),
-        database:dbStatusByReadyState[mongoose.connection.readyState] || "unknown",
+        success: true,
+        status: "ok",
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+        database: dbStatusByReadyState[mongoose.connection.readyState] || "unknown",
     });
-})
+});
 
 app.use("/api-docs", helmet(), swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
@@ -37,23 +37,21 @@ app.use("/api-docs", helmet(), swaggerUi.serve, swaggerUi.setup(openapiSpec));
 app.use(helmet());
 app.use(pinoHttp({ logger }));
 app.use(express.json());
-app.use(express.urlencoded({extended:false}));
-app.use(cookieParser())
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 app.use(mongoSanitize());
 app.use(hpp());
 app.use(botCheck);
 app.use(generalLimiter);
 
-app.use('/api/v1/auth',authLimiter,authrouter)
-app.use('/api/v1/subscriptions',Subscriptionrouter)
-app.use('/api/v1/users',userrouter)
-app.use('/api/v1/workflows',workflowrouter)
+app.use('/api/v1/auth', authLimiter, authrouter);
+app.use('/api/v1/subscriptions', Subscriptionrouter);
+app.use('/api/v1/users', userrouter);
+app.use('/api/v1/workflows', workflowrouter);
 
-app.get("/",(req,res)=>{
+app.get("/", (req, res) => {
     res.send("Welcome to the Subscription Tracker API");
-
-
-})
+});
 
 app.use(errormiddleware);
 
