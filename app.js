@@ -44,10 +44,10 @@ app.use(hpp());
 app.use(botCheck);
 app.use(generalLimiter);
 
-app.use('/api/v1/auth', authLimiter, authrouter);
-app.use('/api/v1/subscriptions', Subscriptionrouter);
-app.use('/api/v1/users', userrouter);
-app.use('/api/v1/workflows', workflowrouter);
+app.use("/api/v1/auth", authLimiter, authrouter);
+app.use("/api/v1/subscriptions", Subscriptionrouter);
+app.use("/api/v1/users", userrouter);
+app.use("/api/v1/workflows", workflowrouter);
 
 app.get("/", (req, res) => {
     res.send("Welcome to the Subscription Tracker API");

@@ -33,7 +33,8 @@ export const createSubscription = async (userId, body) => {
     let workflowError = null;
 
     const forceWorkflow = body.forceWorkflow === true;
-    const shouldTriggerWorkflow = (NODE_ENV && NODE_ENV.toLowerCase() === "production") || forceWorkflow;
+    const shouldTriggerWorkflow =
+        (NODE_ENV && NODE_ENV.toLowerCase() === "production") || forceWorkflow;
 
     if (shouldTriggerWorkflow) {
         try {
@@ -63,7 +64,9 @@ export const createSubscription = async (userId, body) => {
             error: workflowError,
             message: !shouldTriggerWorkflow
                 ? "Workflow not triggered: Not in production environment and forceWorkflow flag not set"
-                : (workflowId ? "Workflow triggered successfully" : "Failed to trigger workflow"),
+                : workflowId
+                  ? "Workflow triggered successfully"
+                  : "Failed to trigger workflow",
         },
     };
 };
@@ -106,18 +109,30 @@ export const getUpcomingRenewals = async (userId, days = 7) => {
     const until = new Date();
     until.setDate(until.getDate() + days);
 
-    return subscription.find({
-        user: userId,
-        status: "active",
-        renewalDate: { $gte: now, $lte: until },
-    }).sort({ renewalDate: 1 });
+    return subscription
+        .find({
+            user: userId,
+            status: "active",
+            renewalDate: { $gte: now, $lte: until },
+        })
+        .sort({ renewalDate: 1 });
 };
 
 export const getSubscription = async (id, userId) => {
     return findOwnedSubscription(id, userId);
 };
 
-const UPDATABLE_FIELDS = ["name", "price", "currency", "frequency", "category", "paymentMethod", "status", "startDate", "renewalDate"];
+const UPDATABLE_FIELDS = [
+    "name",
+    "price",
+    "currency",
+    "frequency",
+    "category",
+    "paymentMethod",
+    "status",
+    "startDate",
+    "renewalDate",
+];
 
 export const updateSubscription = async (id, userId, updates) => {
     const Subscription = await findOwnedSubscription(id, userId);

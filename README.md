@@ -80,10 +80,10 @@ Request flow for a typical write (e.g. `POST /api/v1/subscriptions`): security m
 
 - Node.js and npm — or Docker + Docker Compose if you'd rather skip installing Node/MongoDB locally (see Running with Docker below)
 - A MongoDB connection string (not needed if using Docker Compose, which provides its own)
-  - Signup uses a Mongoose transaction, so the database must be a **replica set** (any MongoDB Atlas cluster satisfies this by default; a plain standalone `mongod` does not).
+    - Signup uses a Mongoose transaction, so the database must be a **replica set** (any MongoDB Atlas cluster satisfies this by default; a plain standalone `mongod` does not).
 - An [Upstash QStash](https://upstash.com/docs/qstash) token + URL (used to schedule renewal reminders)
 - A [Resend](https://resend.com) API key (free tier, no card required — used to send renewal reminder emails)
-  - **Sandbox limitation**: without verifying your own domain, Resend's free sandbox sender (`onboarding@resend.dev`) can only deliver to the email address your Resend account itself was signed up with — not to arbitrary subscriber emails. Fine for demonstrating the feature; verify a domain (still free) if you want it to email real recipients.
+    - **Sandbox limitation**: without verifying your own domain, Resend's free sandbox sender (`onboarding@resend.dev`) can only deliver to the email address your Resend account itself was signed up with — not to arbitrary subscriber emails. Fine for demonstrating the feature; verify a domain (still free) if you want it to email real recipients.
 
 ## Installation
 
@@ -190,41 +190,41 @@ All other routes are prefixed with `/api/v1`.
 
 ### Auth (`/auth`)
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/signup` | Create a user, returns a JWT |
-| POST | `/signin` | Authenticate, returns a JWT |
-| POST | `/signout` | Sign out |
+| Method | Endpoint   | Description                  |
+| ------ | ---------- | ---------------------------- |
+| POST   | `/signup`  | Create a user, returns a JWT |
+| POST   | `/signin`  | Authenticate, returns a JWT  |
+| POST   | `/signout` | Sign out                     |
 
 ### Subscriptions (`/subscriptions`)
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| GET | `/` | required | List the authenticated user's subscriptions |
-| GET | `/upcoming-renewals` | required | Active subscriptions renewing within `?days=` (default 7) |
-| GET | `/user/:id` | required | Get a given user's subscriptions (must match the authenticated user) |
-| GET | `/:subscriptionId/workflow` | required | Get the Upstash workflow status for a subscription's reminders |
-| GET | `/:id` | required | Get subscription details (owner only) |
-| POST | `/` | required | Create a subscription |
-| PUT | `/:id` | required | Update a subscription (owner only) |
-| DELETE | `/:id` | required | Delete a subscription (owner only) |
-| PUT | `/:id/cancel` | required | Cancel a subscription (owner only) |
+| Method | Endpoint                    | Auth     | Description                                                          |
+| ------ | --------------------------- | -------- | -------------------------------------------------------------------- |
+| GET    | `/`                         | required | List the authenticated user's subscriptions                          |
+| GET    | `/upcoming-renewals`        | required | Active subscriptions renewing within `?days=` (default 7)            |
+| GET    | `/user/:id`                 | required | Get a given user's subscriptions (must match the authenticated user) |
+| GET    | `/:subscriptionId/workflow` | required | Get the Upstash workflow status for a subscription's reminders       |
+| GET    | `/:id`                      | required | Get subscription details (owner only)                                |
+| POST   | `/`                         | required | Create a subscription                                                |
+| PUT    | `/:id`                      | required | Update a subscription (owner only)                                   |
+| DELETE | `/:id`                      | required | Delete a subscription (owner only)                                   |
+| PUT    | `/:id/cancel`               | required | Cancel a subscription (owner only)                                   |
 
 ### Users (`/users`)
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| GET | `/` | required | List all users (passwords excluded) |
-| GET | `/:id` | required | Get a user by id |
-| POST | `/` | — | Create a user |
-| PUT | `/:id` | required | Update a user (self only) |
-| DELETE | `/:id` | required | Delete a user (self only) — cascades to their subscriptions |
+| Method | Endpoint | Auth     | Description                                                 |
+| ------ | -------- | -------- | ----------------------------------------------------------- |
+| GET    | `/`      | required | List all users (passwords excluded)                         |
+| GET    | `/:id`   | required | Get a user by id                                            |
+| POST   | `/`      | —        | Create a user                                               |
+| PUT    | `/:id`   | required | Update a user (self only)                                   |
+| DELETE | `/:id`   | required | Delete a user (self only) — cascades to their subscriptions |
 
 ### Workflows (`/workflows`)
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/subscriptions/reminder` | Upstash Workflow entry point that runs the renewal-reminder schedule; triggered internally by QStash, not intended for direct client calls |
+| Method | Endpoint                  | Description                                                                                                                                |
+| ------ | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| POST   | `/subscriptions/reminder` | Upstash Workflow entry point that runs the renewal-reminder schedule; triggered internally by QStash, not intended for direct client calls |
 
 Authenticated routes expect `Authorization: Bearer <token>`.
 

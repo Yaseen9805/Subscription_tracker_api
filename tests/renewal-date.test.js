@@ -38,16 +38,19 @@ describe("Subscription renewal-date calculation", () => {
         ["weekly", 7],
         ["monthly", 30],
         ["yearly", 365],
-    ])("auto-calculates renewalDate as startDate + %s period when not provided", async (frequency, days) => {
-        const startDate = daysAgo(2);
-        const sub = build({ frequency, startDate, renewalDate: undefined });
-        await sub.save();
+    ])(
+        "auto-calculates renewalDate as startDate + %s period when not provided",
+        async (frequency, days) => {
+            const startDate = daysAgo(2);
+            const sub = build({ frequency, startDate, renewalDate: undefined });
+            await sub.save();
 
-        const expected = new Date(startDate);
-        expected.setDate(expected.getDate() + days);
+            const expected = new Date(startDate);
+            expected.setDate(expected.getDate() + days);
 
-        expect(sub.renewalDate.toDateString()).toBe(expected.toDateString());
-    });
+            expect(sub.renewalDate.toDateString()).toBe(expected.toDateString());
+        }
+    );
 
     it("does not override an explicitly provided renewalDate", async () => {
         const startDate = daysAgo(5);

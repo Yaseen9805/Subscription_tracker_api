@@ -1,6 +1,6 @@
 import dns from "node:dns";
 import mongoose from "mongoose";
-import { DB_URI,NODE_ENV } from "../config/env.js";
+import { DB_URI, NODE_ENV } from "../config/env.js";
 import logger from "../config/logger.js";
 
 // On some Windows machines (commonly when VirtualBox/VPN virtual adapters are present
@@ -14,21 +14,20 @@ if (process.platform === "win32") {
     dns.setServers(["8.8.8.8", "1.1.1.1"]);
 }
 
-if(!DB_URI){
-    throw new Error('Please define the MONGODB_URI');
+if (!DB_URI) {
+    throw new Error("Please define the MONGODB_URI");
 }
 
-const connectToDatabase=async () => {
-    try{
+const connectToDatabase = async () => {
+    try {
         await mongoose.connect(DB_URI);
 
-        logger.info(`connected to database in ${NODE_ENV} mode`)
-    }catch(error){
-        logger.error({err:error},'Failed to connect to database');
+        logger.info(`connected to database in ${NODE_ENV} mode`);
+    } catch (error) {
+        logger.error({ err: error }, "Failed to connect to database");
 
         process.exit(1);
     }
-    
-}
+};
 
 export default connectToDatabase;

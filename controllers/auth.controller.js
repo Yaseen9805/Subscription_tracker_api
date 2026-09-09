@@ -7,7 +7,7 @@ export const signup = async function (req, res, next) {
 
         res.status(201).json({
             success: true,
-            message: 'User created Successfully',
+            message: "User created Successfully",
             data: { token, user },
         });
     } catch (error) {
@@ -22,7 +22,7 @@ export const signin = async function (req, res, next) {
 
         res.status(200).json({
             success: true,
-            message: 'User signed in Successfully',
+            message: "User signed in Successfully",
             data: { token, user },
         });
     } catch (error) {
@@ -32,10 +32,10 @@ export const signin = async function (req, res, next) {
 
 export const signout = async function (req, res, next) {
     try {
-        res.clearCookie('token');
+        res.clearCookie("token");
         res.status(200).json({
             success: true,
-            message: 'User signed out Successfully',
+            message: "User signed out Successfully",
         });
     } catch (error) {
         next(error);

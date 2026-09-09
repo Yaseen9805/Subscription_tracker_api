@@ -9,7 +9,15 @@ import logger from "../config/logger.js";
 // that be swapped in without touching this file.
 const DEFAULT_FROM = "Subscription Tracker <onboarding@resend.dev>";
 
-export const sendRenewalReminderEmail = async ({ to, name, subscriptionName, price, currency, renewalDate, daysBefore }) => {
+export const sendRenewalReminderEmail = async ({
+    to,
+    name,
+    subscriptionName,
+    price,
+    currency,
+    renewalDate,
+    daysBefore,
+}) => {
     const dayWord = daysBefore === 1 ? "day" : "days";
 
     const resend = getResendClient();

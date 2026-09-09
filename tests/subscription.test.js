@@ -33,7 +33,9 @@ describe("Subscription CRUD", () => {
     const authed = (req) => req.set("Authorization", `Bearer ${token}`);
 
     it("creates a subscription for the authenticated user", async () => {
-        const response = await authed(request(app).post("/api/v1/subscriptions")).send(validSubscription);
+        const response = await authed(request(app).post("/api/v1/subscriptions")).send(
+            validSubscription
+        );
 
         expect(response.status).toBe(201);
         expect(response.body.data.name).toBe("Netflix");
@@ -41,7 +43,9 @@ describe("Subscription CRUD", () => {
     });
 
     it("rejects an invalid subscription payload with 400", async () => {
-        const response = await authed(request(app).post("/api/v1/subscriptions")).send({ name: "Netflix" });
+        const response = await authed(request(app).post("/api/v1/subscriptions")).send({
+            name: "Netflix",
+        });
 
         expect(response.status).toBe(400);
         expect(response.body.success).toBe(false);
@@ -70,7 +74,9 @@ describe("Subscription CRUD", () => {
     });
 
     it("gets a single subscription by id", async () => {
-        const created = await authed(request(app).post("/api/v1/subscriptions")).send(validSubscription);
+        const created = await authed(request(app).post("/api/v1/subscriptions")).send(
+            validSubscription
+        );
         const id = created.body.data._id;
 
         const response = await authed(request(app).get(`/api/v1/subscriptions/${id}`));
@@ -80,7 +86,9 @@ describe("Subscription CRUD", () => {
     });
 
     it("returns 403 when fetching another user's subscription", async () => {
-        const created = await authed(request(app).post("/api/v1/subscriptions")).send(validSubscription);
+        const created = await authed(request(app).post("/api/v1/subscriptions")).send(
+            validSubscription
+        );
         const id = created.body.data._id;
 
         const { response: otherSignup } = await registerUser();
@@ -94,22 +102,30 @@ describe("Subscription CRUD", () => {
     });
 
     it("returns 404 for a nonexistent subscription id", async () => {
-        const response = await authed(request(app).get("/api/v1/subscriptions/000000000000000000000000"));
+        const response = await authed(
+            request(app).get("/api/v1/subscriptions/000000000000000000000000")
+        );
         expect(response.status).toBe(404);
     });
 
     it("updates a subscription's fields", async () => {
-        const created = await authed(request(app).post("/api/v1/subscriptions")).send(validSubscription);
+        const created = await authed(request(app).post("/api/v1/subscriptions")).send(
+            validSubscription
+        );
         const id = created.body.data._id;
 
-        const response = await authed(request(app).put(`/api/v1/subscriptions/${id}`)).send({ price: 19.99 });
+        const response = await authed(request(app).put(`/api/v1/subscriptions/${id}`)).send({
+            price: 19.99,
+        });
 
         expect(response.status).toBe(200);
         expect(response.body.data.price).toBe(19.99);
     });
 
     it("rejects an empty update body with 400", async () => {
-        const created = await authed(request(app).post("/api/v1/subscriptions")).send(validSubscription);
+        const created = await authed(request(app).post("/api/v1/subscriptions")).send(
+            validSubscription
+        );
         const id = created.body.data._id;
 
         const response = await authed(request(app).put(`/api/v1/subscriptions/${id}`)).send({});
@@ -117,7 +133,9 @@ describe("Subscription CRUD", () => {
     });
 
     it("cancels a subscription, even one whose renewal date has already passed", async () => {
-        const created = await authed(request(app).post("/api/v1/subscriptions")).send(validSubscription);
+        const created = await authed(request(app).post("/api/v1/subscriptions")).send(
+            validSubscription
+        );
         const id = created.body.data._id;
         // validSubscription's renewal date is already in the past, so the pre-save
         // hook auto-expires it on creation -- this is a regression test for that
@@ -131,7 +149,9 @@ describe("Subscription CRUD", () => {
     });
 
     it("deletes a subscription", async () => {
-        const created = await authed(request(app).post("/api/v1/subscriptions")).send(validSubscription);
+        const created = await authed(request(app).post("/api/v1/subscriptions")).send(
+            validSubscription
+        );
         const id = created.body.data._id;
 
         const deleteResponse = await authed(request(app).delete(`/api/v1/subscriptions/${id}`));
@@ -151,7 +171,9 @@ describe("Subscription CRUD", () => {
         };
         await authed(request(app).post("/api/v1/subscriptions")).send(upcoming);
 
-        const response = await authed(request(app).get("/api/v1/subscriptions/upcoming-renewals?days=60"));
+        const response = await authed(
+            request(app).get("/api/v1/subscriptions/upcoming-renewals?days=60")
+        );
 
         expect(response.status).toBe(200);
         expect(response.body.data).toHaveLength(1);

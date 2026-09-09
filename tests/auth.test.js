@@ -49,7 +49,9 @@ describe("Auth flows", () => {
         it("logs in with correct credentials", async () => {
             const { email, password } = await registerUser();
 
-            const response = await request(app).post("/api/v1/auth/signin").send({ email, password });
+            const response = await request(app)
+                .post("/api/v1/auth/signin")
+                .send({ email, password });
 
             expect(response.status).toBe(200);
             expect(response.body.data.token).toEqual(expect.any(String));
