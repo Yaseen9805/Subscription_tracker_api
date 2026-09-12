@@ -1,7 +1,6 @@
 # Subscription Tracker API
 
 ![CI](https://github.com/Yaseen9805/Subscription_tracker_api/actions/workflows/ci.yml/badge.svg)
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 ![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-000000?logo=express&logoColor=white)
@@ -239,7 +238,6 @@ backend/
 ├── Dockerfile                    # Builds the app image (node:20-alpine, prod deps only, non-root)
 ├── docker-compose.yml            # app + a single-node Mongo replica set, for one-command local setup
 ├── .dockerignore
-├── LICENSE                       # MIT
 ├── docs/
 │   └── openapi.js                # Hand-written OpenAPI 3.0 spec, served via swagger-ui-express at /api-docs
 ├── scripts/
@@ -294,7 +292,3 @@ backend/
 ```bash
 npx eslint .
 ```
-
-## License
-
-[MIT](LICENSE)

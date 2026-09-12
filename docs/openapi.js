@@ -93,7 +93,6 @@ export default {
         description:
             "REST API for tracking recurring subscriptions -- JWT auth, subscription CRUD with automatic " +
             "renewal-date calculation, and scheduled renewal-reminder emails via Upstash Workflow + Resend.",
-        license: { name: "MIT", url: "https://opensource.org/licenses/MIT" },
     },
     servers: [
         { url: "http://localhost:5500", description: "Local (npm run dev / docker compose up)" },
