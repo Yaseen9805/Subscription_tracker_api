@@ -16,6 +16,15 @@
 
 A Node.js/Express REST API for tracking recurring subscriptions — user auth, subscription CRUD, automatic renewal-date calculation, and scheduled renewal reminders via Upstash Workflow/QStash.
 
+## Live Demo
+
+Deployed on [Render](https://render.com)'s free tier: **https://subscription-tracker-api-8cb4.onrender.com**
+
+- Interactive API docs (try every endpoint in the browser): **https://subscription-tracker-api-8cb4.onrender.com/api-docs**
+- Health check: **https://subscription-tracker-api-8cb4.onrender.com/health**
+
+There's no frontend — this is an API-only service, best explored through the Swagger UI above (signup, copy the returned JWT into "Authorize", then try any endpoint) or via `curl`/Postman. Since it's on Render's free tier, the service spins down after 15 minutes of inactivity — the first request after a period of idleness can take 30-60 seconds to respond while it wakes back up.
+
 ## Features
 
 - **Authentication** — signup/signin/signout with JWT, hashed passwords (bcrypt), and a transactional signup (MongoDB session) to guarantee atomic user creation.
