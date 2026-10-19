@@ -16,16 +16,19 @@ import logger from "./config/logger.js";
 import openapiSpec from "./docs/openapi.js";
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.get("/health", (req, res) => {
     const dbStatusByReadyState = ["disconnected", "connected", "connecting", "disconnecting"];
+    const database = dbStatusByReadyState[mongoose.connection.readyState] || "unknown";
+    const isConnected = database === "connected";
 
-    res.status(200).json({
-        success: true,
-        status: "ok",
+    res.status(isConnected ? 200 : 503).json({
+        success: isConnected,
+        status: isConnected ? "ok" : "degraded",
         uptime: process.uptime(),
         timestamp: new Date().toISOString(),
-        database: dbStatusByReadyState[mongoose.connection.readyState] || "unknown",
+        database,
     });
 });
 
@@ -53,6 +56,7 @@ app.get("/", (req, res) => {
     res.send("Welcome to the Subscription Tracker API");
 });
 
+app.use((req, res) => res.status(404).json({ success: false, error: "Route not found" }));
 app.use(errormiddleware);
 
 export default app;

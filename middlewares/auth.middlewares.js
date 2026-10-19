@@ -11,7 +11,7 @@ const authorize = async (req, res, next) => {
         }
 
         if (!token) {
-            return res.status(401).json({ message: "Unauthorized" });
+            return res.status(401).json({ success: false, error: "Unauthorized" });
         }
 
         const decoded = jwt.verify(token, JWT_SECRET);
@@ -19,14 +19,14 @@ const authorize = async (req, res, next) => {
         const user = await User.findById(decoded.userId);
 
         if (!user) {
-            return res.status(401).json({ message: "Unauthorized" });
+            return res.status(401).json({ success: false, error: "Unauthorized" });
         }
 
         req.user = user;
         next();
     } catch (error) {
         req.log.warn({ err: error }, "Auth middleware rejected request");
-        res.status(401).json({ message: "Unauthorized" });
+        res.status(401).json({ success: false, error: "Unauthorized" });
     }
 };
 

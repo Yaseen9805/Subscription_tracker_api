@@ -22,3 +22,16 @@ describe("GET /api/v1/users/me", () => {
         expect(response.status).toBe(401);
     });
 });
+
+describe("GET /api/v1/users", () => {
+    it("no longer exists -- the user-listing route was removed", async () => {
+        const { response: signup } = await registerUser();
+        const token = signup.body.data.token;
+
+        const response = await request(app)
+            .get("/api/v1/users")
+            .set("Authorization", `Bearer ${token}`);
+
+        expect(response.status).toBe(404);
+    });
+});

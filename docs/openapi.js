@@ -218,14 +218,7 @@ export default {
         responses: {
             Unauthorized: {
                 description: "Missing, invalid, or expired bearer token",
-                content: {
-                    "application/json": {
-                        schema: {
-                            type: "object",
-                            properties: { message: { type: "string", example: "Unauthorized" } },
-                        },
-                    },
-                },
+                content: { "application/json": { schema: errorResponse } },
             },
             Forbidden: {
                 description: "Authenticated, but not the owner of this resource",
@@ -250,7 +243,7 @@ export default {
                     "Reports process uptime and live database connectivity. Exempt from rate limiting, the bot-check, and request logging.",
                 responses: {
                     200: {
-                        description: "OK",
+                        description: "OK -- database is connected",
                         content: {
                             "application/json": {
                                 schema: {
@@ -258,6 +251,31 @@ export default {
                                     properties: {
                                         success: { type: "boolean", example: true },
                                         status: { type: "string", example: "ok" },
+                                        uptime: { type: "number", example: 123.45 },
+                                        timestamp: { type: "string", format: "date-time" },
+                                        database: {
+                                            type: "string",
+                                            enum: [
+                                                "connected",
+                                                "disconnected",
+                                                "connecting",
+                                                "disconnecting",
+                                            ],
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    503: {
+                        description: "Database is not connected",
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: "object",
+                                    properties: {
+                                        success: { type: "boolean", example: false },
+                                        status: { type: "string", example: "degraded" },
                                         uptime: { type: "number", example: 123.45 },
                                         timestamp: { type: "string", format: "date-time" },
                                         database: {
