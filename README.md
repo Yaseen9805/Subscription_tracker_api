@@ -115,6 +115,12 @@ JWT_EXPIRES_IN=1d
 
 QSTASH_URL=https://qstash.upstash.io
 QSTASH_TOKEN=<your Upstash QStash token>
+# Verifies that reminder-workflow requests actually came from QStash (from
+# Upstash console -> QStash -> Signing Keys). Read automatically by @upstash/workflow's
+# serve() -- without them, the /workflows/subscriptions/reminder endpoint accepts
+# unsigned requests from anyone.
+QSTASH_CURRENT_SIGNING_KEY=<your Upstash QStash current signing key>
+QSTASH_NEXT_SIGNING_KEY=<your Upstash QStash next signing key>
 
 RESEND_API_KEY=<your Resend API key>
 # Optional: overrides the default sandbox sender once you've verified your own domain
@@ -184,7 +190,7 @@ Config comes from `.env.test.local`, which (unlike your other `.env.*.local` fil
 
 ## Continuous Integration
 
-[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every pull request and push to `main`: `lint` (`npx eslint .`), `test` (`npm test`), and `validate-openapi` (`npm run validate:openapi`) — three jobs in parallel, each against a clean `npm ci` install on Node 20. No secrets or external services are needed — the test job uses the same in-memory MongoDB and committed `.env.test.local` as local `npm test`.
+[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every pull request and push to `main`: `lint` (`npx eslint .`), `test` (`npm test`), `validate-openapi` (`npm run validate:openapi`), and `format-check` (`npm run format:check`) — 4 parallel CI checks, each against a clean `npm ci` install on Node 22. No secrets or external services are needed — the test job uses the same in-memory MongoDB and committed `.env.test.local` as local `npm test`.
 
 ## API Documentation
 

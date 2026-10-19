@@ -34,7 +34,7 @@ const subscription = {
         _id: { type: "string" },
         name: { type: "string", example: "Netflix" },
         price: { type: "number", example: 15.99 },
-        currency: { type: "string", enum: ["USD", "EUR", "GBP"], default: "USD" },
+        currency: { type: "string", enum: ["USD", "EUR", "GBP", "INR"], default: "USD" },
         frequency: { type: "string", enum: ["daily", "weekly", "monthly", "yearly"] },
         category: {
             type: "string",
@@ -145,7 +145,7 @@ export default {
                 properties: {
                     name: { type: "string", minLength: 2, maxLength: 100 },
                     price: { type: "number", minimum: 0 },
-                    currency: { type: "string", enum: ["USD", "EUR", "GBP"] },
+                    currency: { type: "string", enum: ["USD", "EUR", "GBP", "INR"] },
                     frequency: { type: "string", enum: ["daily", "weekly", "monthly", "yearly"] },
                     category: {
                         type: "string",
@@ -184,7 +184,7 @@ export default {
                 properties: {
                     name: { type: "string", minLength: 2, maxLength: 100 },
                     price: { type: "number", minimum: 0 },
-                    currency: { type: "string", enum: ["USD", "EUR", "GBP"] },
+                    currency: { type: "string", enum: ["USD", "EUR", "GBP", "INR"] },
                     frequency: { type: "string", enum: ["daily", "weekly", "monthly", "yearly"] },
                     category: {
                         type: "string",

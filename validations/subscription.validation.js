@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const CURRENCIES = ["USD", "EUR", "GBP"];
+const CURRENCIES = ["USD", "EUR", "GBP", "INR"];
 const FREQUENCIES = ["daily", "weekly", "monthly", "yearly"];
 const CATEGORIES = [
     "sports",
@@ -16,7 +16,7 @@ const STATUSES = ["active", "cancelled", "expired"];
 
 export const createSubscriptionSchema = z.object({
     name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
-    price: z.number().min(0, "Price must be greater than 0"),
+    price: z.number().min(0, "Price cannot be negative"),
     currency: z.enum(CURRENCIES).optional(),
     frequency: z.enum(FREQUENCIES, {
         message: `Frequency must be one of: ${FREQUENCIES.join(", ")}`,
@@ -31,7 +31,7 @@ export const createSubscriptionSchema = z.object({
 export const updateSubscriptionSchema = z
     .object({
         name: z.string().trim().min(2, "Name must be at least 2 characters").max(100).optional(),
-        price: z.number().min(0, "Price must be greater than 0").optional(),
+        price: z.number().min(0, "Price cannot be negative").optional(),
         currency: z.enum(CURRENCIES).optional(),
         frequency: z.enum(FREQUENCIES).optional(),
         category: z.enum(CATEGORIES).optional(),

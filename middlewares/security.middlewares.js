@@ -20,9 +20,9 @@ export const authLimiter = rateLimit({
 });
 
 // Known scanner/attack-tool User-Agent signatures. This is not a substitute for
-// real bot detection (Arcjet did that) -- it's a cheap, free tripwire that catches
-// unconfigured scanners and completely missing User-Agent headers, while leaving
-// normal tools (curl, Postman, browsers) untouched.
+// real bot detection -- it's a cheap, free tripwire that catches unconfigured
+// scanners and completely missing User-Agent headers, while leaving normal
+// tools (curl, Postman, browsers) untouched.
 const SUSPICIOUS_USER_AGENTS = [
     "sqlmap",
     "nikto",

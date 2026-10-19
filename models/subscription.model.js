@@ -13,11 +13,11 @@ const subscriptionSchema = new mongoose.Schema(
         price: {
             type: Number,
             required: [true, "subscription price is required"],
-            min: [0, "Price must be greater than 0"],
+            min: [0, "Price cannot be negative"],
         },
         currency: {
             type: String,
-            enum: ["USD", "EUR", "GBP"],
+            enum: ["USD", "EUR", "GBP", "INR"],
             default: "USD",
         },
         frequency: {
