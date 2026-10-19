@@ -1,4 +1,10 @@
 import rateLimit from "express-rate-limit";
+import { NODE_ENV } from "../config/env.js";
+
+// Every test file gets its own Express app instance but shares one in-memory
+// limiter store keyed by IP, so a growing test suite can trip these limits
+// even though it isn't the abuse they're meant to catch.
+const skipInTest = () => NODE_ENV === "test";
 
 // General limiter applied to every request: generous enough for normal API use,
 // tight enough to blunt brute-force/scripted abuse.
@@ -7,6 +13,7 @@ export const generalLimiter = rateLimit({
     max: 100,
     standardHeaders: true,
     legacyHeaders: false,
+    skip: skipInTest,
     message: { success: false, error: "Too many requests, please try again later" },
 });
 
@@ -16,6 +23,7 @@ export const authLimiter = rateLimit({
     max: 20,
     standardHeaders: true,
     legacyHeaders: false,
+    skip: skipInTest,
     message: { success: false, error: "Too many auth attempts, please try again later" },
 });
 
