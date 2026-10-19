@@ -95,6 +95,10 @@ export default {
             "renewal-date calculation, and scheduled renewal-reminder emails via Upstash Workflow + Resend.",
     },
     servers: [
+        {
+            url: "https://subscription-tracker-api-8cb4.onrender.com",
+            description: "Live (Render)",
+        },
         { url: "http://localhost:5500", description: "Local (npm run dev / docker compose up)" },
     ],
     tags: [
