@@ -3,36 +3,33 @@ import Subscription from "../models/subscription.model.js";
 import dayjs from "dayjs";
 import logger from "../config/logger.js";
 import { sendRenewalReminderEmail } from "../services/email.service.js";
+import { getUpcomingReminders } from "../utils/reminders.js";
 
 const require = createRequire(import.meta.url);
 const { serve } = require("@upstash/workflow/express");
 
-const REMINDERS = [7, 5, 2, 1];
 export const sendReminders = serve(async (context) => {
     const { subscriptionId } = context.requestPayload;
     const subscription = await fetchSubscription(context, subscriptionId);
-
     if (!subscription || subscription.status !== "active") return;
 
-    const renewaldate = dayjs(subscription.renewalDate);
+    // Upstash re-runs this function from the top after every step, so anything
+    // time-based must be captured once inside a step to keep replays identical.
+    const startedAt = await context.run("get start time", async () => Date.now());
+    const renewalDate = dayjs(subscription.renewalDate);
 
-    if (renewaldate.isBefore(dayjs())) {
-        logger.info(
-            `Renewal date has passed for subscription ${subscriptionId}. stopping workflow`
-        );
-        return;
-    }
-    for (const daysBefore of REMINDERS) {
-        const reminderDate = renewaldate.subtract(daysBefore, "day");
-        if (reminderDate.isAfter(dayjs())) {
-            await sleepUntilReminder(context, `Reminder ${daysBefore} days before`, reminderDate);
-        }
-        await triggerReminder(
-            context,
-            `Reminder ${daysBefore} days before`,
-            subscription,
-            daysBefore
-        );
+    for (const daysBefore of getUpcomingReminders(renewalDate, startedAt)) {
+        const reminderDate = renewalDate.subtract(daysBefore, "day");
+        await sleepUntilReminder(context, `wait ${daysBefore}d before`, reminderDate);
+
+        // Stop if the user cancelled or deleted the subscription while we slept
+        const stillActive = await context.run(`check status ${daysBefore}d before`, async () => {
+            const latest = await Subscription.findById(subscriptionId).select("status");
+            return latest?.status === "active";
+        });
+        if (!stillActive) return;
+
+        await triggerReminder(context, `send ${daysBefore}d before`, subscription, daysBefore);
     }
 });
 
