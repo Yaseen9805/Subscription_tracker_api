@@ -1,5 +1,8 @@
+import dayjs from "dayjs";
 import Subscription from "../models/subscription.model.js";
 import User from "../models/user.model.js";
+
+const UNIT_BY_FREQUENCY = { daily: "day", weekly: "week", monthly: "month", yearly: "year" };
 
 const daysAgo = (n) => {
     const date = new Date();
@@ -34,21 +37,27 @@ describe("Subscription renewal-date calculation", () => {
         });
 
     it.each([
-        ["daily", 1],
-        ["weekly", 7],
-        ["monthly", 30],
-        ["yearly", 365],
+        ["daily", 45],
+        ["weekly", 45],
+        ["monthly", 45],
+        ["yearly", 800],
     ])(
-        "auto-calculates renewalDate as startDate + %s period when not provided",
-        async (frequency, days) => {
-            const startDate = daysAgo(2);
+        "auto-calculates renewalDate as the first %s-period boundary that isn't before now",
+        async (frequency, startDaysAgo) => {
+            const startDate = daysAgo(startDaysAgo);
             const sub = build({ frequency, startDate, renewalDate: undefined });
             await sub.save();
 
-            const expected = new Date(startDate);
-            expected.setDate(expected.getDate() + days);
+            const unit = UNIT_BY_FREQUENCY[frequency];
+            const renewal = dayjs(sub.renewalDate);
+            const oneEarlier = renewal.subtract(1, unit);
 
-            expect(sub.renewalDate.toDateString()).toBe(expected.toDateString());
+            // "First boundary not before now": it itself must not be before now,
+            // and the previous boundary must already have passed (otherwise it
+            // overshot). Using fresh `now` snapshots keeps this immune to the few
+            // ms between the hook running and this assertion.
+            expect(renewal.isBefore(dayjs())).toBe(false);
+            expect(oneEarlier.isBefore(dayjs())).toBe(true);
         }
     );
 
@@ -62,7 +71,11 @@ describe("Subscription renewal-date calculation", () => {
     });
 
     it("flips status to expired when renewalDate has passed and status was active", async () => {
-        const sub = build({ startDate: daysAgo(40), status: "active" });
+        const sub = build({
+            startDate: daysAgo(40),
+            renewalDate: daysAgo(10),
+            status: "active",
+        });
         await sub.save();
 
         expect(sub.status).toBe("expired");
@@ -75,8 +88,16 @@ describe("Subscription renewal-date calculation", () => {
         expect(sub.status).toBe("active");
     });
 
+    it("stays active when started 40 days ago with no explicit renewalDate", async () => {
+        const sub = build({ startDate: daysAgo(40), renewalDate: undefined, status: "active" });
+        await sub.save();
+
+        expect(sub.status).toBe("active");
+        expect(dayjs(sub.renewalDate).isAfter(dayjs())).toBe(true);
+    });
+
     it("does not clobber an explicitly cancelled status even if renewalDate has passed", async () => {
-        const sub = build({ startDate: daysAgo(40) });
+        const sub = build({ startDate: daysAgo(40), renewalDate: daysAgo(10) });
         await sub.save();
         expect(sub.status).toBe("expired");
 

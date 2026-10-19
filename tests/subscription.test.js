@@ -14,10 +14,11 @@ const validSubscription = {
     name: "Netflix",
     price: 15.99,
     currency: "USD",
-    frequency: "monthly", // 30-day renewal period (see models/subscription.model.js)
+    frequency: "monthly",
     category: "entertainment",
     paymentMethod: "card",
-    startDate: daysAgo(40), // renewalDate lands ~10 days in the past -> status becomes "expired"
+    startDate: daysAgo(40),
+    renewalDate: daysAgo(10), // explicit past date -> status becomes "expired"
 };
 
 describe("Subscription CRUD", () => {
@@ -40,6 +41,17 @@ describe("Subscription CRUD", () => {
         expect(response.status).toBe(201);
         expect(response.body.data.name).toBe("Netflix");
         expect(response.body.data.user).toBe(userId);
+    });
+
+    it("creates a monthly subscription started 40 days ago as active, with a future renewal date", async () => {
+        const response = await authed(request(app).post("/api/v1/subscriptions")).send({
+            ...validSubscription,
+            renewalDate: undefined,
+        });
+
+        expect(response.status).toBe(201);
+        expect(response.body.data.status).toBe("active");
+        expect(new Date(response.body.data.renewalDate).getTime()).toBeGreaterThan(Date.now());
     });
 
     it("rejects an invalid subscription payload with 400", async () => {
@@ -137,7 +149,7 @@ describe("Subscription CRUD", () => {
             validSubscription
         );
         const id = created.body.data._id;
-        // validSubscription's renewal date is already in the past, so the pre-save
+        // validSubscription has an explicit past renewalDate, so the pre-save
         // hook auto-expires it on creation -- this is a regression test for that
         // hook previously clobbering an explicit cancel back to "expired".
         expect(created.body.data.status).toBe("expired");
@@ -168,6 +180,7 @@ describe("Subscription CRUD", () => {
             ...validSubscription,
             name: "Spotify",
             startDate: daysAgo(0),
+            renewalDate: undefined,
         };
         await authed(request(app).post("/api/v1/subscriptions")).send(upcoming);
 
