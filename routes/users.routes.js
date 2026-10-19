@@ -1,22 +1,15 @@
 import { Router } from "express";
-import {
-    createUser,
-    deleteUser,
-    getUser,
-    getUsers,
-    updateUser,
-} from "../controllers/user.controller.js";
+import { deleteUser, updateUser } from "../controllers/user.controller.js";
+import { withoutPassword } from "../utils/sanitize.js";
 import authorize from "../middlewares/auth.middlewares.js";
 import { validate } from "../middlewares/validate.middlewares.js";
-import { createUserSchema, updateUserSchema } from "../validations/user.validation.js";
+import { updateUserSchema } from "../validations/user.validation.js";
 
 const userrouter = Router();
 
-userrouter.get("/", authorize, getUsers);
-
-userrouter.get("/:id", authorize, getUser);
-
-userrouter.post("/", validate(createUserSchema), createUser);
+userrouter.get("/me", authorize, (req, res) => {
+    res.status(200).json({ success: true, data: withoutPassword(req.user) });
+});
 
 userrouter.put("/:id", authorize, validate(updateUserSchema), updateUser);
 

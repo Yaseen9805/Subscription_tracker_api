@@ -205,15 +205,6 @@ export default {
                     renewalDate: { type: "string", format: "date" },
                 },
             },
-            CreateUserRequest: {
-                type: "object",
-                required: ["name", "email", "password"],
-                properties: {
-                    name: { type: "string", minLength: 2, maxLength: 50 },
-                    email: { type: "string", format: "email" },
-                    password: { type: "string", minLength: 6, format: "password" },
-                },
-            },
             UpdateUserRequest: {
                 type: "object",
                 description: "All fields optional, but at least one is required.",
@@ -609,45 +600,14 @@ export default {
                 },
             },
         },
-        "/api/v1/users": {
+        "/api/v1/users/me": {
             get: {
                 tags: ["Users"],
-                summary: "List all users (passwords excluded)",
+                summary: "Get the authenticated user (passwords excluded)",
                 security: [{ bearerAuth: [] }],
                 responses: {
                     200: {
                         description: "OK",
-                        content: {
-                            "application/json": {
-                                schema: {
-                                    type: "object",
-                                    properties: {
-                                        success: { type: "boolean" },
-                                        data: { type: "array", items: user },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                    401: { $ref: "#/components/responses/Unauthorized" },
-                },
-            },
-            post: {
-                tags: ["Users"],
-                summary: "Create a user",
-                description:
-                    "Public, like signup -- but does not issue a JWT. Use /auth/signup to create an account and log in in one step.",
-                requestBody: {
-                    required: true,
-                    content: {
-                        "application/json": {
-                            schema: { $ref: "#/components/schemas/CreateUserRequest" },
-                        },
-                    },
-                },
-                responses: {
-                    201: {
-                        description: "Created",
                         content: {
                             "application/json": {
                                 schema: {
@@ -657,38 +617,11 @@ export default {
                             },
                         },
                     },
-                    400: { $ref: "#/components/responses/ValidationError" },
-                    409: {
-                        description: "Email already registered",
-                        content: { "application/json": { schema: errorResponse } },
-                    },
+                    401: { $ref: "#/components/responses/Unauthorized" },
                 },
             },
         },
         "/api/v1/users/{id}": {
-            get: {
-                tags: ["Users"],
-                summary: "Get a user by id",
-                security: [{ bearerAuth: [] }],
-                parameters: [
-                    { name: "id", in: "path", required: true, schema: { type: "string" } },
-                ],
-                responses: {
-                    200: {
-                        description: "OK",
-                        content: {
-                            "application/json": {
-                                schema: {
-                                    type: "object",
-                                    properties: { success: { type: "boolean" }, data: user },
-                                },
-                            },
-                        },
-                    },
-                    401: { $ref: "#/components/responses/Unauthorized" },
-                    404: { $ref: "#/components/responses/NotFound" },
-                },
-            },
             put: {
                 tags: ["Users"],
                 summary: "Update a user (self only)",

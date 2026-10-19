@@ -10,32 +10,6 @@ const notFound = () => {
     return error;
 };
 
-export const getUsers = async () => {
-    return User.find().select("-password");
-};
-
-export const getUser = async (id) => {
-    const user = await User.findById(id).select("-password");
-    if (!user) throw notFound();
-    return user;
-};
-
-export const createUser = async ({ name, email, password }) => {
-    const existinguser = await User.findOne({ email });
-
-    if (existinguser) {
-        const error = new Error("already exists");
-        error.statusCode = 409;
-        throw error;
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedpassword = await bcrypt.hash(password, salt);
-    const newuser = await User.create({ name, email, password: hashedpassword });
-
-    return withoutPassword(newuser);
-};
-
 export const updateUser = async (targetId, requestingUserId, updates) => {
     if (targetId !== requestingUserId.toString()) {
         const error = new Error("You are not authorized to update this account");

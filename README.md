@@ -222,9 +222,7 @@ All other routes are prefixed with `/api/v1`.
 
 | Method | Endpoint | Auth     | Description                                                 |
 | ------ | -------- | -------- | ----------------------------------------------------------- |
-| GET    | `/`      | required | List all users (passwords excluded)                         |
-| GET    | `/:id`   | required | Get a user by id                                            |
-| POST   | `/`      | —        | Create a user                                               |
+| GET    | `/me`    | required | Get the authenticated user (passwords excluded)             |
 | PUT    | `/:id`   | required | Update a user (self only)                                   |
 | DELETE | `/:id`   | required | Delete a user (self only) — cascades to their subscriptions |
 
