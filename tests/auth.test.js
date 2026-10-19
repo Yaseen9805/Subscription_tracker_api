@@ -68,13 +68,13 @@ describe("Auth flows", () => {
             expect(response.status).toBe(401);
         });
 
-        it("rejects a nonexistent email with 404", async () => {
+        it("rejects a nonexistent email with 401", async () => {
             const response = await request(app).post("/api/v1/auth/signin").send({
                 email: "nobody@example.com",
                 password: "password123",
             });
 
-            expect(response.status).toBe(404);
+            expect(response.status).toBe(401);
         });
     });
 

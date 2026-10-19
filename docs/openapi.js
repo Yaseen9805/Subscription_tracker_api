@@ -321,11 +321,7 @@ export default {
                     },
                     400: { $ref: "#/components/responses/ValidationError" },
                     401: {
-                        description: "Invalid password",
-                        content: { "application/json": { schema: errorResponse } },
-                    },
-                    404: {
-                        description: "No user with that email",
+                        description: "Invalid email or password",
                         content: { "application/json": { schema: errorResponse } },
                     },
                 },
