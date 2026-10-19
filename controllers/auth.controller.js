@@ -29,15 +29,3 @@ export const signin = async function (req, res, next) {
         next(error);
     }
 };
-
-export const signout = async function (req, res, next) {
-    try {
-        res.clearCookie("token");
-        res.status(200).json({
-            success: true,
-            message: "User signed out Successfully",
-        });
-    } catch (error) {
-        next(error);
-    }
-};

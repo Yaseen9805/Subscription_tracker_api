@@ -77,13 +77,4 @@ describe("Auth flows", () => {
             expect(response.status).toBe(401);
         });
     });
-
-    describe("POST /api/v1/auth/signout", () => {
-        it("clears the cookie and returns success", async () => {
-            const response = await request(app).post("/api/v1/auth/signout");
-
-            expect(response.status).toBe(200);
-            expect(response.body.success).toBe(true);
-        });
-    });
 });

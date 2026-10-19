@@ -27,7 +27,7 @@ There's no frontend — this is an API-only service, best explored through the S
 
 ## Features
 
-- **Authentication** — signup/signin/signout with JWT, hashed passwords (bcrypt), and a transactional signup (MongoDB session) to guarantee atomic user creation.
+- **Authentication** — signup/signin with JWT, hashed passwords (bcrypt), and a transactional signup (MongoDB session) to guarantee atomic user creation.
 - **Subscriptions** — create subscriptions with a `startDate` and `frequency`; `renewalDate` is auto-calculated on save if not provided, and `status` auto-flips to `expired` once the renewal date has passed.
 - **Renewal reminders** — creating a subscription can trigger an Upstash Workflow run that schedules reminders 7/5/2/1 days before renewal, sent as real emails via [Resend](https://resend.com) (free tier — see Prerequisites for its sandbox-sender limitation).
 - **Security middleware** — self-hosted stack: `helmet` (secure headers), `express-rate-limit` (general + stricter auth rate limiting), `express-mongo-sanitize` (NoSQL injection protection), `hpp` (HTTP parameter pollution protection), and a small custom check that rejects requests with a missing or known-scanner User-Agent.
@@ -73,7 +73,7 @@ Request flow for a typical write (e.g. `POST /api/v1/subscriptions`): security m
 - **Runtime**: Node.js (ESM / `"type": "module"`)
 - **Framework**: Express 4
 - **Database**: MongoDB with Mongoose 8
-- **Auth**: jsonwebtoken, bcryptjs, cookie-parser
+- **Auth**: jsonwebtoken, bcryptjs
 - **Security**: helmet, express-rate-limit, express-mongo-sanitize, hpp
 - **Validation**: Zod
 - **Logging**: pino, pino-http (pino-pretty in development)
@@ -176,7 +176,7 @@ npm test
 
 Runs the Jest + Supertest suite (`tests/`) against an in-memory MongoDB (via `mongodb-memory-server` — no real database or network access needed). Covers:
 
-- **Auth flows** — signup (success, duplicate email, invalid payload), signin (success, wrong password, unknown email), signout.
+- **Auth flows** — signup (success, duplicate email, invalid payload), signin (success, wrong password, unknown email).
 - **Subscription CRUD** — create/list/get/update/cancel/delete, ownership enforcement (403 on another user's subscription), validation rejection, `upcoming-renewals` filtering.
 - **Renewal-date calculation** — the `Subscription` model's pre-save hook: auto-calculating `renewalDate` per `frequency`, not overriding an explicitly provided `renewalDate`, flipping `status` to `expired` only from `active`, and never clobbering an explicit `cancelled` status.
 
@@ -198,11 +198,12 @@ All other routes are prefixed with `/api/v1`.
 
 ### Auth (`/auth`)
 
-| Method | Endpoint   | Description                  |
-| ------ | ---------- | ---------------------------- |
-| POST   | `/signup`  | Create a user, returns a JWT |
-| POST   | `/signin`  | Authenticate, returns a JWT  |
-| POST   | `/signout` | Sign out                     |
+| Method | Endpoint  | Description                  |
+| ------ | --------- | ---------------------------- |
+| POST   | `/signup` | Create a user, returns a JWT |
+| POST   | `/signin` | Authenticate, returns a JWT  |
+
+Auth is a stateless Bearer JWT, so there is no sign-out endpoint -- the client signs out by discarding its token.
 
 ### Subscriptions (`/subscriptions`)
 

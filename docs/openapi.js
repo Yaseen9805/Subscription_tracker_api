@@ -103,7 +103,7 @@ export default {
     ],
     tags: [
         { name: "Health", description: "Infra health check" },
-        { name: "Auth", description: "Signup, signin, signout" },
+        { name: "Auth", description: "Signup, signin" },
         {
             name: "Subscriptions",
             description: "Subscription CRUD, cancellation, upcoming renewals",
@@ -343,13 +343,6 @@ export default {
                         content: { "application/json": { schema: errorResponse } },
                     },
                 },
-            },
-        },
-        "/api/v1/auth/signout": {
-            post: {
-                tags: ["Auth"],
-                summary: "Sign out",
-                responses: { 200: { description: "OK" } },
             },
         },
         "/api/v1/subscriptions": {
