@@ -7,34 +7,33 @@ import { withoutPassword } from "../utils/sanitize.js";
 
 export const signupUser = async ({ name, email, password }) => {
     const session = await mongoose.startSession();
-    session.startTransaction();
+    let newUser;
     try {
-        const existingUser = await User.findOne({ email });
+        // withTransaction (not manual commit/abort) retries transient errors itself
+        // and never aborts a transaction that already committed.
+        await session.withTransaction(async () => {
+            const existingUser = await User.findOne({ email });
 
-        if (existingUser) {
-            const error = new Error("already exists");
-            error.statusCode = 409;
-            throw error;
-        }
+            if (existingUser) {
+                const error = new Error("already exists");
+                error.statusCode = 409;
+                throw error;
+            }
 
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
 
-        const newUser = await User.create([{ name, email, password: hashedPassword }], { session });
-
-        const token = jwt.sign({ userId: newUser[0]._id }, JWT_SECRET, {
-            expiresIn: JWT_EXPIRES_IN,
+            newUser = await User.create([{ name, email, password: hashedPassword }], { session });
         });
-
-        await session.commitTransaction();
-        session.endSession();
-
-        return { token, user: withoutPassword(newUser[0]) };
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        throw error;
+    } finally {
+        await session.endSession();
     }
+
+    const token = jwt.sign({ userId: newUser[0]._id }, JWT_SECRET, {
+        expiresIn: JWT_EXPIRES_IN,
+    });
+
+    return { token, user: withoutPassword(newUser[0]) };
 };
 
 export const signinUser = async ({ email, password }) => {

@@ -66,19 +66,17 @@ export const deleteUser = async (targetId, requestingUserId) => {
     }
 
     const session = await mongoose.startSession();
-    session.startTransaction();
     try {
-        const user = await User.findById(targetId).session(session);
-        if (!user) throw notFound();
+        // withTransaction (not manual commit/abort) retries transient errors itself
+        // and never aborts a transaction that already committed.
+        await session.withTransaction(async () => {
+            const user = await User.findById(targetId).session(session);
+            if (!user) throw notFound();
 
-        await Subscription.deleteMany({ user: user._id }).session(session);
-        await user.deleteOne({ session });
-
-        await session.commitTransaction();
-        session.endSession();
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-        throw error;
+            await Subscription.deleteMany({ user: user._id }).session(session);
+            await user.deleteOne({ session });
+        });
+    } finally {
+        await session.endSession();
     }
 };
