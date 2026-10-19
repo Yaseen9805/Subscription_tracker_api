@@ -10,6 +10,7 @@ import {
     getusersubscription,
     getWorkflowStatus,
     getSubscriptions,
+    getSpendingSummary,
     getUpcomingRenewals,
     getSubscription,
     updateSubscription,
@@ -20,6 +21,7 @@ import {
 const Subscriptionrouter = Router();
 
 Subscriptionrouter.get("/", authorize, getSubscriptions);
+Subscriptionrouter.get("/summary", authorize, getSpendingSummary);
 Subscriptionrouter.get("/upcoming-renewals", authorize, getUpcomingRenewals);
 Subscriptionrouter.get("/user/:id", authorize, getusersubscription);
 Subscriptionrouter.get("/:subscriptionId/workflow", authorize, getWorkflowStatus);

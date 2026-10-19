@@ -193,3 +193,104 @@ describe("Subscription CRUD", () => {
         expect(response.body.data[0].name).toBe("Spotify");
     });
 });
+
+describe("GET /api/v1/subscriptions/summary", () => {
+    let token;
+
+    beforeEach(async () => {
+        const { response } = await registerUser();
+        token = response.body.data.token;
+    });
+
+    const authed = (req) => req.set("Authorization", `Bearer ${token}`);
+
+    // No explicit renewalDate and startDate of today -> rolls forward to an
+    // active renewal date, unlike validSubscription above.
+    const activeSub = (overrides = {}) => ({
+        name: "Sub",
+        price: 10,
+        currency: "USD",
+        frequency: "monthly",
+        category: "entertainment",
+        paymentMethod: "card",
+        startDate: daysAgo(0),
+        ...overrides,
+    });
+
+    it("returns an empty list when the user has no subscriptions", async () => {
+        const response = await authed(request(app).get("/api/v1/subscriptions/summary"));
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toEqual([]);
+    });
+
+    it("converts mixed frequencies to a monthly-equivalent total", async () => {
+        await authed(request(app).post("/api/v1/subscriptions")).send(
+            activeSub({ name: "Monthly", price: 10, frequency: "monthly" })
+        );
+        await authed(request(app).post("/api/v1/subscriptions")).send(
+            activeSub({ name: "Yearly", price: 120, frequency: "yearly" }) // 120/12 = 10
+        );
+
+        const response = await authed(request(app).get("/api/v1/subscriptions/summary"));
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toEqual([
+            {
+                currency: "USD",
+                monthlyTotal: 20,
+                activeCount: 2,
+                byCategory: { entertainment: 20 },
+            },
+        ]);
+    });
+
+    it("keeps mixed currencies as separate totals", async () => {
+        await authed(request(app).post("/api/v1/subscriptions")).send(
+            activeSub({ name: "USD sub", price: 10, currency: "USD" })
+        );
+        await authed(request(app).post("/api/v1/subscriptions")).send(
+            activeSub({ name: "INR sub", price: 500, currency: "INR" })
+        );
+
+        const response = await authed(request(app).get("/api/v1/subscriptions/summary"));
+
+        expect(response.status).toBe(200);
+        const byCurrency = Object.fromEntries(response.body.data.map((row) => [row.currency, row]));
+        expect(Object.keys(byCurrency).sort()).toEqual(["INR", "USD"]);
+        expect(byCurrency.USD.monthlyTotal).toBe(10);
+        expect(byCurrency.INR.monthlyTotal).toBe(500);
+    });
+
+    it("excludes cancelled subscriptions", async () => {
+        const cancelled = await authed(request(app).post("/api/v1/subscriptions")).send(
+            activeSub({ name: "Cancel me", price: 50 })
+        );
+        await authed(request(app).put(`/api/v1/subscriptions/${cancelled.body.data._id}/cancel`));
+
+        await authed(request(app).post("/api/v1/subscriptions")).send(
+            activeSub({ name: "Keep me", price: 10 })
+        );
+
+        const response = await authed(request(app).get("/api/v1/subscriptions/summary"));
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveLength(1);
+        expect(response.body.data[0].monthlyTotal).toBe(10);
+        expect(response.body.data[0].activeCount).toBe(1);
+    });
+
+    it("excludes another user's subscriptions", async () => {
+        const { response: otherSignup } = await registerUser();
+        const otherToken = otherSignup.body.data.token;
+        await request(app)
+            .post("/api/v1/subscriptions")
+            .set("Authorization", `Bearer ${otherToken}`)
+            .send(activeSub({ name: "Someone else's sub", price: 999 }));
+
+        const response = await authed(request(app).get("/api/v1/subscriptions/summary"));
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toEqual([]);
+    });
+});

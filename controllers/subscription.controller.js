@@ -62,6 +62,19 @@ export const getSubscriptions = async (req, res, next) => {
     }
 };
 
+export const getSpendingSummary = async (req, res, next) => {
+    try {
+        const summary = await subscriptionService.getSpendingSummary(req.user._id);
+
+        res.status(200).json({
+            success: true,
+            data: summary,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const getUpcomingRenewals = async (req, res, next) => {
     try {
         const days = Number(req.query.days) || 7;

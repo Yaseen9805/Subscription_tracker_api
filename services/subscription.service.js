@@ -104,6 +104,50 @@ export const getSubscriptions = async (userId) => {
     return subscription.find({ user: userId });
 };
 
+// Converts each frequency's price to a monthly-equivalent cost, so subscriptions
+// on different billing cycles can be compared/summed on common ground.
+const MONTHLY_FACTOR = {
+    daily: 365 / 12,
+    weekly: 52 / 12,
+    monthly: 1,
+    yearly: 1 / 12,
+};
+
+const round2 = (n) => Math.round(n * 100) / 100;
+
+// Pure: assumes the caller already filtered to the subscriptions that should
+// be included (active, owned by the right user).
+export const calculateMonthlySpendingSummary = (subscriptions) => {
+    const byCurrency = new Map();
+
+    for (const sub of subscriptions) {
+        const monthlyCost = sub.price * MONTHLY_FACTOR[sub.frequency];
+
+        if (!byCurrency.has(sub.currency)) {
+            byCurrency.set(sub.currency, { monthlyTotal: 0, activeCount: 0, byCategory: {} });
+        }
+
+        const entry = byCurrency.get(sub.currency);
+        entry.monthlyTotal += monthlyCost;
+        entry.activeCount += 1;
+        entry.byCategory[sub.category] = (entry.byCategory[sub.category] || 0) + monthlyCost;
+    }
+
+    return Array.from(byCurrency, ([currency, entry]) => ({
+        currency,
+        monthlyTotal: round2(entry.monthlyTotal),
+        activeCount: entry.activeCount,
+        byCategory: Object.fromEntries(
+            Object.entries(entry.byCategory).map(([category, total]) => [category, round2(total)])
+        ),
+    }));
+};
+
+export const getSpendingSummary = async (userId) => {
+    const activeSubscriptions = await subscription.find({ user: userId, status: "active" });
+    return calculateMonthlySpendingSummary(activeSubscriptions);
+};
+
 export const getUpcomingRenewals = async (userId, days = 7) => {
     const now = new Date();
     const until = new Date();

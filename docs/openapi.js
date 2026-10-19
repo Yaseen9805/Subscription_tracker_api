@@ -440,6 +440,57 @@ export default {
                 },
             },
         },
+        "/api/v1/subscriptions/summary": {
+            get: {
+                tags: ["Subscriptions"],
+                summary: "Monthly spending summary, grouped by currency",
+                description:
+                    "Converts each active subscription to a monthly-equivalent cost (daily x 365/12, " +
+                    "weekly x 52/12, monthly x 1, yearly / 12) and groups the totals by currency, " +
+                    "with a per-category breakdown. Currencies are never summed together.",
+                security: [{ bearerAuth: [] }],
+                responses: {
+                    200: {
+                        description: "OK",
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: "object",
+                                    properties: {
+                                        success: { type: "boolean" },
+                                        data: {
+                                            type: "array",
+                                            items: {
+                                                type: "object",
+                                                properties: {
+                                                    currency: { type: "string", example: "INR" },
+                                                    monthlyTotal: {
+                                                        type: "number",
+                                                        example: 1148.25,
+                                                    },
+                                                    activeCount: { type: "integer", example: 4 },
+                                                    byCategory: {
+                                                        type: "object",
+                                                        additionalProperties: {
+                                                            type: "number",
+                                                        },
+                                                        example: {
+                                                            entertainment: 649,
+                                                            technology: 499.25,
+                                                        },
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    401: { $ref: "#/components/responses/Unauthorized" },
+                },
+            },
+        },
         "/api/v1/subscriptions/user/{id}": {
             get: {
                 tags: ["Subscriptions"],

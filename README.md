@@ -28,7 +28,7 @@ There's no frontend — this is an API-only service, best explored through the S
 ## Features
 
 - **Authentication** — signup/signin with JWT, hashed passwords (bcrypt), and a transactional signup (MongoDB session) to guarantee atomic user creation.
-- **Subscriptions** — create subscriptions with a `startDate` and `frequency`; `renewalDate` is auto-calculated on save if not provided, and `status` auto-flips to `expired` once the renewal date has passed.
+- **Subscriptions** — create subscriptions with a `startDate` and `frequency`; `renewalDate` is auto-calculated on save if not provided, and `status` auto-flips to `expired` once the renewal date has passed. A `/summary` endpoint rolls active subscriptions up into a monthly-equivalent spending total per currency, broken down by category.
 - **Renewal reminders** — creating a subscription can trigger an Upstash Workflow run that schedules reminders 7/5/2/1 days before renewal, sent as real emails via [Resend](https://resend.com) (free tier — see Prerequisites for its sandbox-sender limitation).
 - **Security middleware** — self-hosted stack: `helmet` (secure headers), `express-rate-limit` (general + stricter auth rate limiting), `express-mongo-sanitize` (NoSQL injection protection), `hpp` (HTTP parameter pollution protection), and a small custom check that rejects requests with a missing or known-scanner User-Agent.
 - **Request validation** — Zod schemas validate every write endpoint's body; invalid requests get a `400` with per-field error details.
@@ -185,6 +185,7 @@ Runs the Jest + Supertest suite (`tests/`) against an in-memory MongoDB (via `mo
 - **Auth flows** — signup (success, duplicate email, invalid payload), signin (success, wrong password, unknown email).
 - **Subscription CRUD** — create/list/get/update/cancel/delete, ownership enforcement (403 on another user's subscription), validation rejection, `upcoming-renewals` filtering.
 - **Renewal-date calculation** — the `Subscription` model's pre-save hook: auto-calculating `renewalDate` per `frequency`, not overriding an explicitly provided `renewalDate`, flipping `status` to `expired` only from `active`, and never clobbering an explicit `cancelled` status.
+- **Spending summary** — the monthly-equivalent cost calculation (unit tests) and the `/summary` endpoint's currency grouping, category breakdown, and exclusion of cancelled/other users' subscriptions (Supertest).
 
 Config comes from `.env.test.local`, which (unlike your other `.env.*.local` files) is committed — it holds only fixed dummy values (a fake JWT secret, a fake QStash token), never real credentials.
 
@@ -216,6 +217,7 @@ Auth is a stateless Bearer JWT, so there is no sign-out endpoint -- the client s
 | Method | Endpoint                    | Auth     | Description                                                          |
 | ------ | --------------------------- | -------- | -------------------------------------------------------------------- |
 | GET    | `/`                         | required | List the authenticated user's subscriptions                          |
+| GET    | `/summary`                  | required | Monthly spending summary, grouped by currency                        |
 | GET    | `/upcoming-renewals`        | required | Active subscriptions renewing within `?days=` (default 7)            |
 | GET    | `/user/:id`                 | required | Get a given user's subscriptions (must match the authenticated user) |
 | GET    | `/:subscriptionId/workflow` | required | Get the Upstash workflow status for a subscription's reminders       |
