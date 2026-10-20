@@ -144,7 +144,10 @@ export const calculateMonthlySpendingSummary = (subscriptions) => {
 };
 
 export const getSpendingSummary = async (userId) => {
-    const activeSubscriptions = await subscription.find({ user: userId, status: "active" });
+    const activeSubscriptions = await subscription
+        .find({ user: userId, status: "active" })
+        .select("price frequency currency category")
+        .lean();
     return calculateMonthlySpendingSummary(activeSubscriptions);
 };
 

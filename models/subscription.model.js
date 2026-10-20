@@ -82,21 +82,23 @@ const subscriptionSchema = new mongoose.Schema(
 );
 
 subscriptionSchema.pre("save", function (next) {
+    const now = dayjs();
     if (!this.renewalDate) {
         const unit = { daily: "day", weekly: "week", monthly: "month", yearly: "year" }[
             this.frequency
         ];
-        const now = dayjs();
-        let periods = 1;
-        let renewal = dayjs(this.startDate).add(periods, unit);
+        const start = dayjs(this.startDate);
+        // diff gives a starting estimate; the loop only corrects the last step. Always
+        // adding from startDate (not the previous renewal) keeps a Jan 31 start month-end.
+        let periods = Math.max(1, now.diff(start, unit));
+        let renewal = start.add(periods, unit);
         while (renewal.isBefore(now)) {
             periods += 1;
-            // Always add from startDate, so a Jan 31 start stays month-end
-            renewal = dayjs(this.startDate).add(periods, unit);
+            renewal = start.add(periods, unit);
         }
         this.renewalDate = renewal.toDate();
     }
-    if (this.status === "active" && this.renewalDate < new Date()) {
+    if (this.status === "active" && this.renewalDate < now.toDate()) {
         this.status = "expired";
     }
     next();

@@ -1,33 +1,26 @@
-import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import { JWT_EXPIRES_IN, JWT_SECRET } from "../config/env.js";
 import { withoutPassword } from "../utils/sanitize.js";
+import { runInTransaction } from "../utils/transaction.js";
 
 export const signupUser = async ({ name, email, password }) => {
-    const session = await mongoose.startSession();
-    let newUser;
-    try {
-        // withTransaction (not manual commit/abort) retries transient errors itself
-        // and never aborts a transaction that already committed.
-        await session.withTransaction(async () => {
-            const existingUser = await User.findOne({ email });
+    // Hashed up front so the CPU-bound work neither holds the transaction open nor
+    // repeats if withTransaction retries the callback.
+    const hashedPassword = await bcrypt.hash(password, await bcrypt.genSalt(10));
 
-            if (existingUser) {
-                const error = new Error("already exists");
-                error.statusCode = 409;
-                throw error;
-            }
+    const newUser = await runInTransaction(async (session) => {
+        const existingUser = await User.findOne({ email });
 
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
+        if (existingUser) {
+            const error = new Error("already exists");
+            error.statusCode = 409;
+            throw error;
+        }
 
-            newUser = await User.create([{ name, email, password: hashedPassword }], { session });
-        });
-    } finally {
-        await session.endSession();
-    }
+        return User.create([{ name, email, password: hashedPassword }], { session });
+    });
 
     const token = jwt.sign({ userId: newUser[0]._id }, JWT_SECRET, {
         expiresIn: JWT_EXPIRES_IN,

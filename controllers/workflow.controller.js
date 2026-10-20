@@ -24,7 +24,7 @@ export const sendReminders = serve(async (context) => {
 
         // Stop if the user cancelled or deleted the subscription while we slept
         const stillActive = await context.run(`check status ${daysBefore}d before`, async () => {
-            const latest = await Subscription.findById(subscriptionId).select("status");
+            const latest = await Subscription.findById(subscriptionId).select("status").lean();
             return latest?.status === "active";
         });
         if (!stillActive) return;
